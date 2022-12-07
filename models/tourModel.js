@@ -1,24 +1,25 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
+//const validator = require('validator');
 
 //schema for our tours
-const tourSchema = new mongoose.Schema({
+const tourSchema = new mongoose.Schema(
+  {
     name: {
       type: String,
       required: [true, 'A tour must have a name'],
       unique: true,
       trim: true,
+      maxlength: [40, 'A tour name must have less or equal then 40 characters'],
+      minlength: [10, 'A tour name must have more or equal then 10 characters'],
       //validator is an object with methods
-      validate: [validator.isAlpha, 'Tour name must only contain characters']
+     // validate: [validator.isAlpha, 'Tour name must only contain characters']
     },
-    slug: {String},
+    slug: String,
     duration: {
         type: Number,
-        required: [true, 'A tour must have a duration'],
-       
+        required: [true, 'A tour must have a duration']
     },
-
     //how many people can partake in a tour at the same time
     maxGroupSize: {
         type: Number,
@@ -28,6 +29,10 @@ const tourSchema = new mongoose.Schema({
     difficulty: {
         type: String,
         required: [true, 'A tour must have a difficulty'],
+        enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either: easy, medium, difficult'
+      }
     },
   
     //we'll have a resource called ratings
@@ -36,28 +41,28 @@ const tourSchema = new mongoose.Schema({
     //these are calculated
     ratingsAverage: {
       type: Number,
-      default: 4.5
+      default: 4.5,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be below 5.0']
     },
 
     ratingsQuantity: {
-        type: Number,
-        default: 4.5
-      },
-  
+      type: Number,
+      default: 0
+    },
     price: {
       type: Number,
       required: [true, 'A tour must have a price']
     },
-
     //custom validator
     priceDiscount: {
       type: Number,
       validate: {
-        
         validator: function(val) {
+        // this only points to current doc on NEW document creation
         //val is the discount provided by the user
-        return val < this.price;
-      },
+      return val < this.price;
+    },
 
       //message also has access to the value provided by the user
       //this is a feature of mongoose and not JS
@@ -74,7 +79,7 @@ const tourSchema = new mongoose.Schema({
 
       description: {
         type: String,
-        trim: true //remove whitespace
+        trim: true,//remove whitespace
       },
 
       //images on the overview
@@ -138,34 +143,21 @@ const tourSchema = new mongoose.Schema({
  
   //can have multiple pre and post middlewares for the same hook
   //a hook is a middleware function
-  tourSchema.pre('save', function(next){
-    console.log('Will save document...');
+  tourSchema.pre(/^find/, function(next) {
+    this.find({ secretTour: { $ne: true } });
+  
+    this.start = Date.now();
     next();
   });
- 
+  
   
   //post middleware are executed after all the pre have been executed
-  tourSchema.post('save', function(doc, next){
-    console.log(doc);
+  tourSchema.post(/^find/, function(docs, next) {
+    console.log(`Query took ${Date.now() - this.start} milliseconds!`);
     next();
   });
 
-  //Query middleware
-   //tourSchema.pre('find', function(next){
-   tourSchema.pre(/^find/, function(next){
-    this.find({ secretTour: {$ne: true} });
-    
-    this.start = Dat.now();
-    next();
-  });
-
-  tourSchema.post(/^find/, function(docs, next){
-    console.log(`Query took ${Date.now() - this.start} milliseconds!`)
-    console.log(docs);
-    next();
-  });
-
-  //Aggregation Tours
+  //Aggregation Middleware
   //'this' here points to the aggregation object. it's an array
   //the aggregation pipeline is the array that we passed to aggragte()
   //in the controller

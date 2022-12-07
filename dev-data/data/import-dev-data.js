@@ -10,7 +10,10 @@ dotenv.config({ path: './config.env' });
 //DATABASE and Pasword are defined in config.env
 //connect to the DB again (in addition to server.js) bc it runs 
 //completely independent of the Express application
-const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+const DB = process.env.DATABASE.replace(
+    '<PASSWORD>', 
+     process.env.DATABASE_PASSWORD
+     );
 
 //deal with deprecation warnings
 //connect() returns a promise which we handle using then
@@ -18,10 +21,7 @@ mongoose.connect(DB, {
   useNewUrlParser: true,
   userCreateIndex: true,
   useFindAndModify: false
-}).then(con => {
-  console.log(con.connections);
-  console.log('DB connection successful');
-} );
+}).then(()=> console.log('DB connection successful'));
 
 
 //READ JSON file
@@ -52,10 +52,7 @@ const deleteData = async() => {
 };
 
 if(process.argv[2] === '--import'){
-    importData()
+    importData();
 } else if (process.argv[2] === '--delete'){
-    deleteData()
+    deleteData();
 }
-
-
-console.log(process.argv);

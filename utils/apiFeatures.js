@@ -8,9 +8,9 @@ class APIFeatures{
       this.queryString = queryString;
     }
   
-    filter(){
+    filter() {
       // Filtering
-      const queryObj = {...this.queryString};
+      const queryObj = {...this.queryString };
       const excludedFields = ['page', 'sort', 'limit', 'filds'];
       excludedFields .forEach(el => delete queryObj[el]);
   
@@ -36,6 +36,7 @@ class APIFeatures{
     } else{
       this.query = this.query.sort('-createdAt');
     }
+    return this;
    }
   
   
