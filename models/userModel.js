@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -16,6 +17,11 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email']
   },
   photo: String, //optional
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user'
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
@@ -41,7 +47,9 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same!'
     }
   },
-  passwordChangedAt: Date
+  passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date
 });
 
 //if the password has not been modified,
@@ -59,6 +67,28 @@ userSchema.pre('save', async function(next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+//we want to set the passwordChangedAt property only if the password
+//has actually changed
+userSchema.pre('save', async function(next) {
+  //if password has been modified, update
+  //we also don't need to set the passwordChangedAt property if we've created
+  //a new document
+  if(!this.isModified('password') || this.isNew) return next();
+
+  //if above verification has passed, set the property
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+
+  //sometimes saving to the database is slower than issuing the jwt
+  //making it so that the chnagedPassword timestamp is sometimes set a bit after
+  //the jwt ahs been created. This will make is so that the user can't log in
+  //with the new token
+  //The whole reason that the passwordChangedAt timestamp exists is so that
+  //it can be compared with the password on the jwt
+  //we deal with this by subtracting 1 second so that the passwordChangedAt is one sec in the past
+});
+
 
 //instance method
 //inside the instance methods 'this' refers to the current document.
@@ -86,6 +116,28 @@ userSchema.methods.changedPasswordAfter = function(JWTTimeStamp) {
   //false means not changed i.e.
   return false;
 };
+
+userSchema.methods.createPasswordResetToken = function() {
+  //generate the token
+  //32 is the number of bytes
+  //convert to a hexadecimal string
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  //we want it to expire after 10 minutes
+  //10 * 60 sec * 1000 ms
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  //return the plain text token because that's what we send to the user via email
+  return resetToken;
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

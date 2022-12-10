@@ -25,6 +25,14 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+
+    //the delete route handler/controller is protected
+    //by the protect and restrictTo middleware above
+    //which ensure that only authrorized users get access to it
+    tourController.deleteTour
+  );
 
 module.exports = router;

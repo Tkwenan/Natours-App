@@ -2,15 +2,30 @@
 //one approach: const util = require('util');
 //util.promisify ...
 //another approach: destructuring (below and on line )
+const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const sendEmail = require('./../utils/email');
 
 const signToken = id => {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
+  });
+};
+
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+
+  //send the token and new user to the client
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user
+    }
   });
 };
 
@@ -28,21 +43,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm
   });
 
-  //first argument is the payload. this is an object for all
-  //the data that we want to store inside of the token
-  //in this case, the id of the new user who was just created
-  //in MongoDB, the id is called _id
-  //second argument - secret. We include this in our config file
-  const token = signToken(newUser._id);
-
-  //send the token and new user to the client
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser
-    }
-  });
+  createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -73,12 +74,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   //if there's no error at all, we get to this block of code
-  const token = signToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+  createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -130,4 +126,126 @@ exports.protect = catchAsync(async (req, res, next) => {
   //in this case is the hanlder for the route that's protected
   req.user = currentUser;
   next();
+});
+
+//this is the synatx we use when we want to pass in an arbitrary number
+//of arguments
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    //roles is an array e.g. ['admin, 'lead-guide']
+    //if the role of the current user is not contaoned in the roles array
+    //restrict access
+    //the role of the current user is stored in req.user on line 131 above
+    //inside the protect middleware which always runs before this middleware
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action', 403)
+      );
+    }
+
+    next();
+  };
+};
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  //1)Get user based on POSTed email
+  //can't use findById bc email is the only piece of information we know
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with that email address.', 404));
+  }
+
+  //2)Generate the random reset token
+  const resetToken = user.createPasswordResetToken();
+
+  //turn off all the validators that we ssaved in our schema
+  await user.save({ validateBeforeSave: false });
+
+  //3)Send it to user's email
+  //protocol - http or https
+  //host - preparing this to work in both dev and prod
+  const resetURL = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${resetToken}`;
+
+  const message = `Forgot your password? Please reset your email on ${resetURL}.\n If you did not forget your password, please ignore this email.`;
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your password reset token (valid for 10 min)'
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Token sent to email'
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(
+      new AppError('There was an error sending the email. Try again later!'),
+      500
+    );
+  }
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  //1) Get user based on the token
+  //token is a url parameter bc we set it in userRoutes.js
+  const hashedToken = crypto
+    .createdHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  //we query the database for this token to find the user associated with this token
+  //at this pointbwe don't know anything else about the user other than the token
+  //need to check if the passwordResetExpires is greater than what time it currently is
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  //2) If token has not expired, and there is user, set the new password
+  //if token has expired, no user will be returned
+  if (!user) {
+    return next(new AppError('Token is invalid or has expired', 400));
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  //3) Update changedPasswordAt property for the user
+  //we implement this in the user model as a pre save middleware
+
+  //4) Log user in, send JWT
+  createSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  //1)Get user from collection
+  //This functionality is only for authenticated users
+  //so at this point, we have our currenty user on our request object
+  //from the protect middleware
+  //we explicitly ask for the password using 'select' because it's not automatically
+  //included in the output (as specified in the schema)
+  const user = await User.findById(req.user.id).select('password');
+
+  //why we don't do User.findByIdAndUpdate() - some middleware won't work
+  //and validation won't be done
+
+  //2)Check if POSTed current password is correct
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong.', 401));
+  }
+  //3)If so, update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+
+  //4)Log user in with new password, send jwt
+  createSendToken(user, 200, res);
 });
