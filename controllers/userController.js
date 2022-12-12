@@ -3,7 +3,7 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 
 const filterObj = (obj, ...allowedFields) => {
-  //loop through the object. 'keys' returns an array containing all the 
+  //loop through the object. 'keys' returns an array containing all the
   //field names of the object
   const newObj = {};
   Object.keys(obj).forEach(el => {
@@ -13,8 +13,7 @@ const filterObj = (obj, ...allowedFields) => {
     if (allowedFields.includes(el)) newObj[el] = obj[el];
   });
   return newObj;
-}
-
+};
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
@@ -38,18 +37,30 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   //since we're not dealing with sensitive data like passwords
   //we can now use findByIdAndUpdate instead of just findById
   //we also pass in the data that we want to be updated, x
-  //we use filteredBody for this instead of req.body bc we want to restrict the user from 
+  //we use filteredBody for this instead of req.body bc we want to restrict the user from
   //updating info like role, resetToken
   //and some options. We want to filter the body so that it only contains the name and email address
   //'new' option makes sure it returns the new object instead of the old objects
   const filteredBody = filterObj(req.body, 'name', 'email');
-  const user = await User.findByIdAndUpdate(req.user.id, filteredBody, { new: true, runValidators: true});
+  const user = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
 
   res.status(200).json({
     status: 'success',
     data: {
-      user: updatedUser
+      user
     }
+  });
+});
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null
   });
 });
 

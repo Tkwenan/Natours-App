@@ -22,6 +22,8 @@ router.patch(
 //no one can change the ID in the jwt without knowing the secret,we know that the id is safe
 router.patch('/updateMe', authController.protect, userController.updateMe);
 
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
+
 router
   .route('/')
   .get(userController.getAllUsers)

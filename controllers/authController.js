@@ -18,6 +18,25 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+  const cookieOptions = {
+    //we convert the 90d to milliseconds
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+
+    //only send the cookie on an encrypted connection e.g. https
+    //this is only activated in prod, so we can rewite it as below
+    //on line 33
+    //secure: true,
+
+    //cookie can't be modified in any way by the browser
+    httpOnly: true
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  res.cookie('jwt', token, cookieOptions);
+
+  user.password = undefined;
 
   //send the token and new user to the client
   res.status(statusCode).json({
