@@ -8,51 +8,50 @@ const Tour = require('./../../models/tourModel');
 dotenv.config({ path: './config.env' });
 
 //DATABASE and Pasword are defined in config.env
-//connect to the DB again (in addition to server.js) bc it runs 
+//connect to the DB again (in addition to server.js) bc it runs
 //completely independent of the Express application
 const DB = process.env.DATABASE.replace(
-    '<PASSWORD>', 
-     process.env.DATABASE_PASSWORD
-     );
+  '<PASSWORD>',
+  process.env.DATABASE_PASSWORD
+);
 
 //deal with deprecation warnings
 //connect() returns a promise which we handle using then
-mongoose.connect(DB, {
-  useNewUrlParser: true,
-  userCreateIndex: true,
-  useFindAndModify: false
-}).then(()=> console.log('DB connection successful'));
-
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    userCreateIndex: true,
+    useFindAndModify: false
+  })
+  .then(() => console.log('DB connection successful'));
 
 //READ JSON file
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours-simple.json`, `utf-8`));
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, `utf-8`));
 
 //Function to actually Import Data Into DB
-const importData = async() => {
-    try {
-        await Tour.create(tours);
-        console.log('Data successfully loaded!');
-        
-    } catch (err) {
-        console.log(err);
-    }
-    process.exit();
+const importData = async () => {
+  try {
+    await Tour.create(tours);
+    console.log('Data successfully loaded!');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
 };
 
 //Delete all the data from DB/Tours collection
-const deleteData = async() => {
-    try {
-        await Tour.deleteMany();
-        console.log('Data successfully deleted');
-        
-    } catch (err) {
-        console.log(err);
-    }
-    process.exit();
+const deleteData = async () => {
+  try {
+    await Tour.deleteMany();
+    console.log('Data successfully deleted');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
 };
 
-if(process.argv[2] === '--import'){
-    importData();
-} else if (process.argv[2] === '--delete'){
-    deleteData();
+if (process.argv[2] === '--import') {
+  importData();
+} else if (process.argv[2] === '--delete') {
+  deleteData();
 }

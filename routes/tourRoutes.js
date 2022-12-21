@@ -1,10 +1,35 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
 const authController = require('./../controllers/authController');
+const reviewRouter = require('./../routes/reviewRoutes');
 
 const router = express.Router();
 
 //router.param('id', tourController.checkID);
+
+// POST /tour/2345hbm/reviews
+// GET  /tour/2345hbm/reviews
+// GET  /tour/2345hbm/reviews/864rghbh
+
+//router
+//.route('/:tourId/reviews')
+//.post(
+//authController.protect,
+//authController.restrictTo('user'),
+//reviewController.createReview
+//);
+
+//router
+//.route('/:id')
+// .get(tourController.getTour)
+// .patch(tourController.updateTour);
+
+//a router is just middleware, so we can use the 'use' method on it
+//and say for this specific route, use the reviewRouter
+//this is mounting a router (similar to app.js)
+//Need to allow the reviewRouter to get access to the tourId parameter
+//we do this in reviewRouter
+router.use('/:tourId/reviews', reviewRouter);
 
 //aliasing
 //we use a middleware

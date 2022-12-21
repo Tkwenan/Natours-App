@@ -16,6 +16,13 @@ router.patch(
   authController.updatePassword
 );
 
+router.get(
+  '/me',
+  authController.protect,
+  userController.getMe,
+  userController.getUser
+);
+
 //authController.protect - this is a protected route - so only the currently logged in user
 //can update the data. The ID of the user that will be updated comes from req.user
 //which is set by the authController.protect middleware which in turn got the ID from the jwt
