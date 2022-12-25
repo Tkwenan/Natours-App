@@ -156,6 +156,11 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+//1 - sort in ascending order
+//tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 //we use a regular function as opposed to an arrow funcyion because
 //arrow functions don't get their own 'this' keyword
 //this here points to the current document

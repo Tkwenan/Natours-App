@@ -10,15 +10,20 @@ router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
+//protect all the routes that come after this point
+//i.e. user has to be logged in in order to access these routes
+//we do this instead of adding authController.protect to each route
+router.use(authController.protect);
+
 router.patch(
   '/updateMyPassword',
-  authController.protect,
+  //authController.protect,
   authController.updatePassword
 );
 
 router.get(
   '/me',
-  authController.protect,
+  //authController.protect,
   userController.getMe,
   userController.getUser
 );
@@ -27,9 +32,20 @@ router.get(
 //can update the data. The ID of the user that will be updated comes from req.user
 //which is set by the authController.protect middleware which in turn got the ID from the jwt
 //no one can change the ID in the jwt without knowing the secret,we know that the id is safe
-router.patch('/updateMe', authController.protect, userController.updateMe);
+router.patch(
+  '/updateMe',
+  //authController.protect,
+  userController.updateMe
+);
 
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
+router.delete(
+  '/deleteMe',
+  //authController.protect,
+  userController.deleteMe
+);
+
+//restrict routes beyond this point to admins
+router.use(authController.restrictTo('admin'));
 
 router
   .route('/')

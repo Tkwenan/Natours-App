@@ -79,7 +79,7 @@ userSchema.pre('save', async function(next) {
   //if password has been modified, update
   //we also don't need to set the passwordChangedAt property if we've created
   //a new document
-  if(!this.isModified('password') || this.isNew) return next();
+  if (!this.isModified('password') || this.isNew) return next();
 
   //if above verification has passed, set the property
   this.passwordChangedAt = Date.now() - 1000;
