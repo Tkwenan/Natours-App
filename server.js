@@ -24,17 +24,15 @@ mongoose
     useNewUrlParser: true,
     userCreateIndex: true,
     useFindAndModify: false
-})
-  .then(() =>  console.log('DB connection successful'));
-
+  })
+  .then(() => console.log('DB connection successful'));
 
 //save the tour document to the database
 //testTour.save().then(doc => {
-  //console.log(doc);
+//console.log(doc);
 //}).catch(err => {
-  //console.log('ERROR:', err);
+//console.log('ERROR:', err);
 //});
-
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {

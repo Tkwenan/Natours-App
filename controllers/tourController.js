@@ -1,7 +1,7 @@
+const AppError = require('../utils/appError');
 const Tour = require('./../models/tourModel');
 //const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
-//const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
 
 exports.aliasTopTours = (req, res, next) => {
@@ -418,4 +418,92 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
   //    message: err
   // });
   //}
+});
+
+// /tours-within/:distance/center/:latlng/unit/:unit'
+// /tours-within/233/center/-40, 45/unit/midistance=233&center=-40,45
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  //use destructuring to get variables from the url
+  const { distance, latlng, unit } = req.params;
+
+  //get coordinates from the latlng variable
+  const [lat, lng] = latlng.split(',');
+
+  //mongo expects the radius of a sphere to be in radians
+  //we get radians by dividing the distance by the radius of the earth
+  //miles otherwise we assume it's kilometers
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat, lng',
+        400
+      )
+    );
+  }
+
+  //we want to query for start location bc the start location field holds the geospatial point where each tour starts
+  //geoWithin is a geospatial opeartor like gte
+  //finds documents within a given geometry which we specify
+  //in our case, we want to find documents inside of a sphere that starts at latlng
+  //and has a radius of the distance that we defined
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours
+    }
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  //use destructuring to get variables from the url
+  const { latlng, unit } = req.params;
+
+  //get coordinates from the latlng variable
+  const [lat, lng] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat, lng',
+        400
+      )
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        //point from which to calculate the distances
+        //all distances to tours will be calculated between this point and the start location of a tour
+        //it's the latlng parameter
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1] //multiply by 1 to convert to a number
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier //divide by 1000 to convert to km
+      }
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1
+      }
+    }
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances
+    }
+  });
 });

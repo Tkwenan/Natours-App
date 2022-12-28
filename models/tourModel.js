@@ -161,7 +161,7 @@ const tourSchema = new mongoose.Schema(
 //tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
-
+tourSchema.index({ $startLocation: '2dsphere'})
 //we use a regular function as opposed to an arrow funcyion because
 //arrow functions don't get their own 'this' keyword
 //this here points to the current document
@@ -235,11 +235,11 @@ tourSchema.pre(/^find/, function(next) {
 //'this' here points to the aggregation object. it's an array
 //the aggregation pipeline is the array that we passed to aggragte()
 //in the controller
-tourSchema.pre('aggregate', function(next) {
+//tourSchema.pre('aggregate', function(next) {
   //remove from the output all the tours that have secretTours set to true
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+  //this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  //next();
+//});
 
 //all the required data is on the overview page
 //create model out of schema
