@@ -1,11 +1,17 @@
 const express = require('express');
+//const multer = require('multer');
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
+
+//we use this variable to create a middleware that we use in the updateMe route below.
+//upload.single
+//const upload = multer ({ dest: 'public/img/users'}); //folder to save images that users upload
 
 const router = express.Router();
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.get('/logout', authController.logout);
 
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
@@ -35,6 +41,17 @@ router.get(
 router.patch(
   '/updateMe',
   //authController.protect,
+
+  //single bc we only have one single file
+  //photo is the name of the field in the form that holds this file
+  //this middleware takes the file and copies it to the destination that we specify
+  //and then calls the next middleware in the stack (updateMe)
+  //This middleware also puts information about the file on the request object
+  //try viewing what the file and body look like right after the middlewre is done
+  //by using console.log(req.file) & console.log(req.body) at the start of updateMe method
+  //upload.single('photo')
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
   userController.updateMe
 );
 

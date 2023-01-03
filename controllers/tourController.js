@@ -42,46 +42,46 @@ exports.aliasTopTours = (req, res, next) => {
 //fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 //);
 
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
+//exports.createTour = catchAsync(async (req, res, next) => {
+//const newTour = await Tour.create(req.body);
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour
-    }
-  });
+//res.status(201).json({
+//status: 'success',
+//data: {
+// tour: newTour
+//}
+//});
 
-  //one way to create a document
-  //calling the method on the document
-  //const newTour = new Tour({})
-  //newTour.save()
+//one way to create a document
+//calling the method on the document
+//const newTour = new Tour({})
+//newTour.save()
 
-  //an easier way
-  //calling the method directly on the tour model
-  //save the result value of the promise in the newTour  variable
-  //pass in the data that yu want to store in the database as a new tour - req.body
-  //create returns a promise which we await
-  // and store the result into the newTour variable
-  //which will be the newly created document already
-  //with the ID
-  //try {
-  //res.status(201).json({
-  //status: 'success',
-  //data: {
-  // tour: newTour
-  //}
-  //});
-  //}
-  //catch (err) {
-  //think about when an error can happen
-  //e.g. when we create a document without a required field
-  // res.status(400).json({
-  // status: 'fail',
-  // message: err
-  //});
-  //}
-});
+//an easier way
+//calling the method directly on the tour model
+//save the result value of the promise in the newTour  variable
+//pass in the data that yu want to store in the database as a new tour - req.body
+//create returns a promise which we await
+// and store the result into the newTour variable
+//which will be the newly created document already
+//with the ID
+//try {
+//res.status(201).json({
+//status: 'success',
+//data: {
+// tour: newTour
+//}
+//});
+//}
+//catch (err) {
+//think about when an error can happen
+//e.g. when we create a document without a required field
+// res.status(400).json({
+// status: 'fail',
+// message: err
+//});
+//}
+//});
 
 //exports.getAllTours = catchAsync(async (req, res, next) => {
 //get all tours
@@ -271,7 +271,6 @@ exports.createTour = catchAsync(async (req, res, next) => {
 //});
 
 exports.getAllTours = factory.getAll(Tour);
-
 exports.createTour = factory.createOne(Tour);
 exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 exports.updateTour = factory.updateOne(Tour);

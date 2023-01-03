@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -15,6 +16,8 @@ const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
+
+app.engine('pug', require('pug').__express);
 
 //tell Express what templating engine we're using
 app.set('view engine', 'pug');
@@ -46,6 +49,7 @@ app.use('/api', limiter);
 
 //Body parser -> reading data from the body into req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 //Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -78,7 +82,7 @@ app.use(
 //Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  //console.log(req.headers);
+  //console.log(req.cookies); //for each request display all the cookies on the console
   next();
 });
 

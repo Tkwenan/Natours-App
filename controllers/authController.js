@@ -30,6 +30,7 @@ const createSendToken = (user, statusCode, res) => {
     //secure: true,
 
     //cookie can't be modified in any way by the browser
+    //even deleted
     httpOnly: true
   };
 
@@ -86,15 +87,21 @@ exports.login = catchAsync(async (req, res, next) => {
   //correctPassword is an instance method defined in userModel
   //it's available on all User documents and the variable 'user' above
   //is a document
-  const correct = user.correctPassword(password, user.password);
-
-  if (!user || !correct) {
+  if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   //if there's no error at all, we get to this block of code
   createSendToken(user, 200, res);
 });
+
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'Logged Out', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true
+  });
+  res.status(200).json({ status: 'success' });
+};
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
@@ -106,6 +113,9 @@ exports.protect = catchAsync(async (req, res, next) => {
     //split the string using a space and retrieve the second element
     //from that array
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    //if this property exists on the cookie
+    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -144,8 +154,41 @@ exports.protect = catchAsync(async (req, res, next) => {
   //next() leads us to the next middleware which leads
   //in this case is the hanlder for the route that's protected
   req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
+
+// Only for rendered pages, no errors!
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // 1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // 2) Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 3) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // THERE IS A LOGGED IN USER
+      // Make them accessible to our Pug templates
+      res.locals.user = currentUser;
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+};
 
 //this is the synatx we use when we want to pass in an arbitrary number
 //of arguments
@@ -191,7 +234,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   try {
     await sendEmail({
       email: user.email,
-      subject: 'Your password reset token (valid for 10 min)'
+      subject: 'Your password reset token (valid for 10 min)',
+      message
     });
 
     res.status(200).json({
