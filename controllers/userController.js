@@ -44,22 +44,25 @@ const upload = multer({
   fileFilter: multerFilter
 });
 
+//we only have one single field to which we want to upload a photo
+//the 'photo' field
+//we implement it differently for tours bc we need to upload images to more than one file
 exports.uploadUserPhoto = upload.single('photo');
 
 //WITH IMAGE-PROCESSING
-exports.resizeUserPhoto = (req, res, next) => {
+exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
 
   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
 
-  sharp(req.file.buffer)
+  await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')({ quality: 90 })
     .jpeg({ quality: 90 })
     .toFile(`public/img/users/${req.file.filename}`);
 
   next();
-};
+});
 
 const filterObj = (obj, ...allowedFields) => {
   //loop through the object. 'keys' returns an array containing all the
