@@ -7,6 +7,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const compression = require('compression'); //exposes a middleware function that we plug into our middleware stack
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -74,6 +75,10 @@ app.use(
     ]
   })
 );
+
+//returns a middleware function which compresses all the text that's sent to clients
+//not images - images are always already compressed
+app.use(compression());
 
 //just used this to demo the concept of middleware
 //app.use((req, res, next) => {
