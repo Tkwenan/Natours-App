@@ -75,7 +75,7 @@ userSchema.pre('save', async function(next) {
 
 //we want to set the passwordChangedAt property only if the password
 //has actually changed
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', function(next) {
   //if password has been modified, update
   //we also don't need to set the passwordChangedAt property if we've created
   //a new document
@@ -120,8 +120,8 @@ userSchema.methods.changedPasswordAfter = function(JWTTimeStamp) {
       10
     );
 
-    console.log(changedTimestamp, JWTTimestamp);
-    return JWTTimestamp < changedTimestamp;
+    //console.log(changedTimestamp, JWTTimestamp);
+    return JWTTimeStamp < changedTimestamp;
   }
 
   //false means not changed i.e.

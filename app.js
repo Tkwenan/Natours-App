@@ -38,7 +38,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-//Limit requests rom same IP address
+//Limit requests from same IP address
 const limiter = rateLimit({
   //how many requests we want to allow in within a given time frame
   max: 100,
@@ -50,6 +50,7 @@ app.use('/api', limiter);
 
 //Body parser -> reading data from the body into req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
 //Data sanitization against NoSQL query injection
@@ -88,24 +89,24 @@ app.use((req, res, next) => {
 });
 
 // 3) ROUTES
-app.get('/', (req, res) => {
-  res.status(200).render('base', {
-    tour: 'The Forest Hiker',
-    user: 'Tracy'
-  });
-});
+//app.get('/', (req, res) => {
+//res.status(200).render('base', {
+//tour: 'The Forest Hiker',
+//user: 'Tracy'
+//});
+//});
 
-app.get('/overview', (req, res) => {
-  res.status(200).render('overview', {
-    title: 'All Tours'
-  });
-});
+//app.get('/overview', (req, res) => {
+// res.status(200).render('overview', {
+//   title: 'All Tours'
+// });
+//});
 
-app.get('/tour', (req, res) => {
-  res.status(200).render('base', {
-    title: 'The Forest Hiker Tour'
-  });
-});
+//app.get('/tour', (req, res) => {
+// res.status(200).render('base', {
+//   title: 'The Forest Hiker Tour'
+//});
+//});
 
 app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);

@@ -1,14 +1,14 @@
 //we need the promisify method from the util module
 //one approach: const util = require('util');
 //util.promisify ...
-//another approach: destructuring (below and on line )
+//another approach: destructuring (below and on line 6)
 const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
-const sendEmail = require('./../utils/email');
+const Email = require('./../utils/email');
 
 const signToken = id => {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
@@ -62,6 +62,10 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm
   });
+
+  const url = `${req.protocol}://${req.get('host')}/me`;
+  console.log(url);
+  await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 201, res);
 });
@@ -226,21 +230,16 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   //3)Send it to user's email
   //protocol - http or https
   //host - preparing this to work in both dev and prod
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`;
 
-  const message = `Forgot your password? Please reset your email on ${resetURL}.\n If you did not forget your password, please ignore this email.`;
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token (valid for 10 min)',
-      message
-    });
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+    await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
       status: 'success',
-      message: 'Token sent to email'
+      message: 'Token sent to email!'
     });
   } catch (err) {
     user.passwordResetToken = undefined;
@@ -295,7 +294,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   //from the protect middleware
   //we explicitly ask for the password using 'select' because it's not automatically
   //included in the output (as specified in the schema)
-  const user = await User.findById(req.user.id).select('password');
+  const user = await User.findById(req.user.id).select('+password');
 
   //why we don't do User.findByIdAndUpdate() - some middleware won't work
   //and validation won't be done
@@ -308,6 +307,8 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
+
+  // User.findByIdAndUpdate will NOT work as intended!
 
   //4)Log user in with new password, send jwt
   createSendToken(user, 200, res);

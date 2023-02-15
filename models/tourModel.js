@@ -216,18 +216,18 @@ tourSchema.pre(/^find/, function(next) {
   next();
 });
 
-//post middleware are executed after all the pre have been executed
-tourSchema.post(/^find/, function(docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  next();
-});
-
 tourSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'guides',
     select: '-__v -passwordChangedAt'
   });
 
+  next();
+});
+
+//post middleware are executed after all the pre have been executed
+tourSchema.post(/^find/, function(docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
   next();
 });
 
