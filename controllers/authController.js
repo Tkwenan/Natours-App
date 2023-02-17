@@ -16,10 +16,12 @@ const signToken = id => {
   });
 };
 
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
-  const cookieOptions = {
+  //const cookieOptions = {
     //we convert the 90d to milliseconds
+  res.cookie('jwt', token, {
+
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
@@ -31,11 +33,14 @@ const createSendToken = (user, statusCode, res) => {
 
     //cookie can't be modified in any way by the browser
     //even deleted
-    httpOnly: true
-  };
+    httpOnly: true,
+    secure: req.secure || req.headers('x-forwarded') === 'https'
+  });
 
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  res.cookie('jwt', token, cookieOptions);
+  //if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  //if (req.secure || req.headers['x-forwarded-proto'] == 'https')
+  //  cookieOptions.secure = true;
+  //res.cookie('jwt', token, cookieOptions);
 
   user.password = undefined;
 
