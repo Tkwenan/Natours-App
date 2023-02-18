@@ -55,7 +55,7 @@ process.on('SIGTERM', () => {
   server.close(() => {
     console.log('Process terminated!');
 
-    //no need for shutting it down manually using process.exit() because the 
+    //no need for shutting it down manually using process.exit() because the
     //sigterm does it itself
     //process.exit(1);
   });

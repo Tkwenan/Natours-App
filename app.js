@@ -8,6 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression'); //exposes a middleware function that we plug into our middleware stack
+const cors = require('cors'); //exposes a middleware function that we plug into our middleware stack
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -28,6 +29,28 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 // 1) GLOBAL MIDDLEWARES
+
+//Implement CORS
+//This is how we enable cross-origin resource sharing for all incoming requests
+//if we wanted to enable it for only a specific route, we'd just add it to the middleware stack of that specific route
+//e.g. app.use('/api/v1/tours', cors(), tourRouter);
+//calling cors() returns a middleware function which adds a couple of different headers to our response
+//specifically, it sets the 'Access-Control-Allow-Origin' header to '*' i.e. everything/all the requests no matter where they're coming from
+//this is ideal for allowing everyone to consume our api
+//In a case where we don't want to share our api but we want to be able to share the api on one domain/sub-domain and then have our frontend application on a differemt domain
+//e.g. our api is at api.natours.com and our frontend app on natours.com
+//so we only want to allow access from natours.com
+//we'd implement it as
+//app.use(cors({
+//origin: 'https://www.natours.com
+//}))
+//could also allow origins from other websitess
+app.use(cors());
+
+//.options is just another http method thatwe can respond to
+//define the route for which we want to handle the options, all the routes in this case
+//define the handler as well, which in this case is the cors() middleware
+app.options('*', cors());
 
 //serving static files
 app.use(express.static(path.join(__dirname, 'public')));
