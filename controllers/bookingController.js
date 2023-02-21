@@ -41,7 +41,9 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
       {
         name: `${tour.name} Tour`,
         description: tour.summary,
-        images: [`https://www.natours.dev/img/tours/${tour.imageCover}`],
+        images: [
+          `${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`
+        ],
         amount: tour.price * 100, //multiply by 100 to get cents
         currency: 'usd',
         quantity: 1
@@ -133,7 +135,7 @@ exports.webhookCheckout = (req, res, next) => {
   //this is the event type that we specify in our stripe dashboard
   //if the event is the correct event, we create a new booking in our database
   //we do this using the createBookingCheckout function above
-  if (event.type === 'checkout.session.complete')
+  if (event.type === 'checkout.session.completed')
     createBookingCheckout(event.data.object);
 
   //send some response to stripe
