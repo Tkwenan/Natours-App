@@ -4,6 +4,19 @@ const Booking = require('../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
+exports.alerts = (req, res, next) => {
+  //const alert = req.query.alert;
+  const { alert } = req.query;
+
+  //the alert that we put in the query string in bookingController.js
+  //we add that last part because Stripe says in the docs that sometimes the webhook
+  //is called a little bit after the success url is called
+  if (alert === 'booking')
+    res.locals.alert =
+      "Your booking was successful! Please check your email for a confirmation. If your booking doesn't show up here immediately, please come back later";
+  next();
+};
+
 exports.getOverview = catchAsync(async (req, res, next) => {
   // 1) Get tour data from collection
   //whenever there is a request for tour data, all our data

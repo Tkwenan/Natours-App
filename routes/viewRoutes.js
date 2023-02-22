@@ -1,9 +1,12 @@
 const express = require('express');
 const viewsController = require('../controllers/viewsController');
 const authController = require('../controllers/authController');
-const bookingController = require('../controllers/bookingController');
 
 const router = express.Router();
+
+//alerts is a middleware function which will basically run for each and every
+//single request that's coming into this router i.e. for all the requests to our website
+router.use(viewsController.alerts);
 
 //router.get('/', bookingController.createBookingCheckout, authController.isLoggedIn, viewsController.getOverview);
 router.get('/', authController.isLoggedIn, viewsController.getOverview);

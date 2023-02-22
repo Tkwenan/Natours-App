@@ -33,10 +33,8 @@ exports.uploadTourImages = upload.fields([
 // upload.single('image') req.file
 // upload.array('images', 5) req.files
 exports.resizeTourImages = catchAsync(async (req, res, next) => {
-  console.log(req.files);
-
   //if there are no images uploaded or if there is no image cover
-  if (!req.files.imageCover || req.files.images) return next();
+  if (!req.files.imageCover || !req.files.images) return next();
 
   // 1) Cover image
   req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
@@ -44,7 +42,7 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
   await sharp(req.files.imageCover[0].buffer)
     //we resize to a 3:2 ratio which is always good for images
     .resize(2000, 1333)
-    .toFormat('jpeg')({ quality: 90 })
+    .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toFile(`public/img/users/${req.body.imageCover}`);
 
@@ -383,12 +381,12 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
         //'ratingsAverage' is the name of the field
         //$avg is a built-in Mongo math operator that calculates the avg
         //of the specified field
-        _id: { $toUpper: 'difficulty' },
+        _id: { $toUpper: '$difficulty' },
 
         //for each document that passes through this pipeline,
         //1 is added to the numTours counter
         numTours: { $sum: 1 },
-        numRatings: { $sum: 'ratingsQuantity' },
+        numRatings: { $sum: '$ratingsQuantity' },
         avgRating: { $avg: '$ratingsAverage' },
         avgPrice: { $avg: '$price' },
         minPrice: { $min: '$price' },

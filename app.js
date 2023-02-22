@@ -7,6 +7,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const compression = require('compression'); //exposes a middleware function that we plug into our middleware stack
 const cors = require('cors'); //exposes a middleware function that we plug into our middleware stack
 
@@ -19,11 +20,12 @@ const bookingController = require('./controllers/bookingController');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
 
+//Start express app
 const app = express();
 
 app.enable('trust proxy');
 
-app.engine('pug', require('pug').__express);
+//app.engine('pug', require('pug').__express);
 
 //tell Express what templating engine we're using
 app.set('view engine', 'pug');
@@ -78,7 +80,7 @@ app.use('/api', limiter);
 //we need the body in raw format
 app.post(
   '/webhook-checkout',
-  express.raw({ type: 'application/json' }),
+  bodyParser.raw({ type: 'application/json' }),
   bookingController.webhookCheckout
 );
 

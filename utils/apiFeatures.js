@@ -54,7 +54,7 @@ class APIFeatures {
     //1-10 -> page 1
     // 11-20 - page 2
     //so if we want page 2, need to skip
-    const page = this.queryString * 1 || 1;
+    const page = this.queryString.page * 1 || 1;
     const limit = this.queryString.limit * 1 || 100;
     const skip = (page - 1) * limit;
 

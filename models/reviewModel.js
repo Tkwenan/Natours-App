@@ -91,7 +91,7 @@ reviewSchema.statics.calcAverageRatings = async function(tourId) {
 
   //to test
   //
-  console.log(stats);
+  //console.log(stats);
 
   //we await becaue it returns a promise, but we don't save to
   //a variable because we don't really need the tour. All we need to do is

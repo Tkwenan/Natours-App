@@ -33,7 +33,7 @@ const createSendToken = (user, statusCode, req, res) => {
     //cookie can't be modified in any way by the browser
     //even deleted
     httpOnly: true,
-    secure: req.secure || req.headers('x-forwarded') === 'https'
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
   });
 
   //if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
@@ -68,7 +68,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 
   const url = `${req.protocol}://${req.get('host')}/me`;
-  console.log(url);
+  //console.log(url);
   await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 201, res);
@@ -100,7 +100,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   //if there's no error at all, we get to this block of code
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.logout = (req, res) => {
@@ -288,7 +288,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   //we implement this in the user model as a pre save middleware
 
   //4) Log user in, send JWT
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -315,5 +315,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   // User.findByIdAndUpdate will NOT work as intended!
 
   //4)Log user in with new password, send jwt
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });

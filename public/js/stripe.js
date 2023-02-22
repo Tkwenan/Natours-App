@@ -13,7 +13,7 @@ export const bookTour = async tourId => {
     //we await a https request using axios
     //when all we want to do is a simple get request, we just pass in the URL
     //as opposed to the method, the url and the data
-    const session = await axios(`http://127.0.0.1:3000/api/v1/bookings/checkout-session/${tourId}`);
+    const session = await axios(`/api/v1/bookings/checkout-session/${tourId}`);
 
     // 2) Create checkout form + charge credit card
     await stripe.redirectToCheckout({

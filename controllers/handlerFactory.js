@@ -103,7 +103,7 @@ exports.getAll = Model =>
     //send response
     res.status(200).json({
       status: 'success',
-      requestedAt: req.requestTime,
+      //requestedAt: req.requestTime,
       results: doc.length,
       data: {
         data: doc

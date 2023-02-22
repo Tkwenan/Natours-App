@@ -53,7 +53,7 @@ router
   .route('/tours-within/:distances/center/:latlng/unit/:unit')
   .get(tourController.getToursWithin);
 
-router.route('/distance/:latlng/unit/:unit').get(tourController.getDistances);
+router.route('/distances/:latlng/unit/:unit').get(tourController.getDistances);
 
 router
   .route('/')

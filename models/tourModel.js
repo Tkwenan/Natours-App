@@ -45,7 +45,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
-      set: val => Math.round(val * 10) //runs every time there's a new value for ratingsAvg
+      set: val => Math.round(val * 10) / 10 //runs every time there's a new value for ratingsAvg
     },
 
     ratingsQuantity: {
@@ -226,10 +226,10 @@ tourSchema.pre(/^find/, function(next) {
 });
 
 //post middleware are executed after all the pre have been executed
-tourSchema.post(/^find/, function(docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  next();
-});
+//tourSchema.post(/^find/, function(docs, next) {
+//console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+//next();
+//});
 
 //Aggregation Middleware
 //'this' here points to the aggregation object. it's an array

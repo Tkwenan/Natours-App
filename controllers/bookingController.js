@@ -23,7 +23,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     //success_url: `${req.protocol}://${req.get('host')}/my-tours/?tour=${
     //req.params.tourId
     //}&user=${req.user.id}&price=${tour.price}`, //home page
-    success_url: `${req.protocol}://${req.get('host')}/my-tours`,
+    success_url: `${req.protocol}://${req.get('host')}/my-tours?alert=booking`,
 
     //url the user is directed to if the payment is cancelled
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
@@ -35,7 +35,6 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     customer_email: req.user.email, //since it's a protected route, the user is already on the request
     client_reference_id: req.params.tourId,
 
-    //
     line_items: [
       //array of objects
       {
@@ -98,7 +97,7 @@ const createBookingCheckout = async session => {
 
   //stored in line-items which is an array with one element
   //divide by 100 to get dollars
-  const price = session.line_items[0].amount / 100;
+  const price = session.display_items[0].amount / 100;
   await Booking.create({ tour, user, price });
 };
 

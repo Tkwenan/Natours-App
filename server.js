@@ -48,12 +48,11 @@ process.on('unhandledRejection', err => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('SIGTERM RECEIVED. Shutting down gracefully...');
-
+  console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
   //graceful shutdown -> basically close the server
   //handles pending requests before closing the server
   server.close(() => {
-    console.log('Process terminated!');
+    console.log('💥 Process terminated!');
 
     //no need for shutting it down manually using process.exit() because the
     //sigterm does it itself
