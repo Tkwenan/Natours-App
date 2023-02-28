@@ -1,6 +1,6 @@
 const multer = require('multer');
 const sharp = require('sharp');
-const AppError = require('../utils/appError');
+const AppError = require('./../utils/appError');
 const Tour = require('./../models/tourModel');
 //const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
@@ -44,7 +44,7 @@ exports.resizeTourImages = catchAsync(async (req, res, next) => {
     .resize(2000, 1333)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
-    .toFile(`public/img/users/${req.body.imageCover}`);
+    .toFile(`public/img/tours/${req.body.imageCover}`);
 
   // 2) Images
   // i for index. zero-based
@@ -439,7 +439,7 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     //so dates within a year, basically
     {
       $match: {
-        $startDates: {
+        startDates: {
           $gte: new Date(`${year}-01-01`),
           $lte: new Date(`${year}-12-31`)
         }

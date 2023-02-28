@@ -34,8 +34,8 @@ if (userDataForm)
   userDataForm.addEventListener('submit', e => {
     e.preventDefault();
     const form = new FormData();
-    form.append('name',document.getElementById('name').value);
-    form.append('email',document.getElementById('email').value);
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
     form.append('photo', document.getElementById('photo').files[0]);
 
 
@@ -79,4 +79,4 @@ if (userPasswordForm)
   });
 
 const alertMessage = document.querySelector('body').dataset.alert;
-if(alertMessage) showAlert('success', alertMessage, 20);
+if (alertMessage) showAlert('success', alertMessage, 20);

@@ -11,7 +11,7 @@ const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
 
 const signToken = id => {
-  return jwt.sign({ id: id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 };
@@ -40,8 +40,8 @@ const createSendToken = (user, statusCode, req, res) => {
   //if (req.secure || req.headers['x-forwarded-proto'] == 'https')
   //  cookieOptions.secure = true;
   //res.cookie('jwt', token, cookieOptions);
-
-  user.password = undefined;
+  
+  user.password = undefined; //remove password from output
 
   //send the token and new user to the client
   res.status(statusCode).json({
@@ -68,10 +68,10 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 
   const url = `${req.protocol}://${req.get('host')}/me`;
-  //console.log(url);
+  // console.log(url);
   await new Email(newUser, url).sendWelcome();
 
-  createSendToken(newUser, 201, res);
+  createSendToken(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -100,6 +100,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   //if there's no error at all, we get to this block of code
+  //send token to client
   createSendToken(user, 200, req, res);
 });
 
@@ -128,7 +129,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (!token) {
     return next(
-      new AppError('Your are not logged in. Please log in to get access.', 401)
+      new AppError('You are not logged in. Please log in to get access.', 401)
     );
   }
 
@@ -261,7 +262,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   //1) Get user based on the token
   //token is a url parameter bc we set it in userRoutes.js
   const hashedToken = crypto
-    .createdHash('sha256')
+    .createHash('sha256')
     .update(req.params.token)
     .digest('hex');
 

@@ -7,7 +7,7 @@ const stripe = Stripe('pk_test_51MTTa2BwfnUhayYNge20ZvdLOj50qtnkVGirQWYNRCDVE8TV
 //we get the tourId from the user interface in tour.pug (see bottom of file)
 //in index.js, we connect the green 'checkout' button with this function
 export const bookTour = async tourId => {
-    try{
+    try {
     // 1) Get checkout session from API/server(?)
     //this is where we use the checkout-session route in bookingRoute
     //we await a https request using axios

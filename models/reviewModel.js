@@ -18,7 +18,7 @@ const reviewSchema = new mongoose.Schema(
     //Date built in JS type
     createdAt: {
       type: Date,
-      default: Date.now()
+      default: Date.now
     },
 
     //where the id of the tour is stored

@@ -54,7 +54,7 @@ module.exports = class Email {
     //so that we can then send that HTML as the email
     //__dirname is the name of location of the currently running script
     const html = pug.renderFile(
-      `${__dirname}/../views/emails/${template}.pug`,
+      `${__dirname}/../views/email/${template}.pug`,
       {
         firstName: this.firstName,
         url: this.url,
@@ -79,7 +79,7 @@ module.exports = class Email {
   }
 
   async sendWelcome() {
-    await this.send('Welcome', 'Welcome to the Natours Family!');
+    await this.send('welcome', 'Welcome to the Natours Family!');
   }
 
   async sendPasswordReset() {

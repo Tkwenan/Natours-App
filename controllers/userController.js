@@ -98,7 +98,9 @@ exports.getMe = (req, res, next) => {
 exports.updateMe = catchAsync(async (req, res, next) => {
   //1)Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
-    return next(new AppError('This route is not for password updates.', 400));
+    return next(new AppError('This route is not for password updates. Please use /updateMyPassword.', 400
+    )
+    );
   }
   //2)Update user document
   //since we're not dealing with sensitive data like passwords

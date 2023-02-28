@@ -40,7 +40,7 @@ router
 router.route('/tour-stats').get(tourController.getTourStats);
 
 router
-  .route('/monthly-plan:year')
+  .route('/monthly-plan/:year')
   .get(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide', 'guide'),
@@ -50,7 +50,7 @@ router
 //this is cleaner than using query strings i.e.
 //tours-distance?distance=233&center=-40,45
 router
-  .route('/tours-within/:distances/center/:latlng/unit/:unit')
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
   .get(tourController.getToursWithin);
 
 router.route('/distances/:latlng/unit/:unit').get(tourController.getDistances);
